@@ -36,7 +36,9 @@ class UserDlg(QDialog):
         self.userView.setColumnHidden(0, True) # hide sn
         self.userView.setColumnHidden(2, True) # hide password
         # print(2)
-        combodelegate = ComboBoxDelegate(self, ["市残联", "辅助器具中心", "市康复中心"])
+        lstUnitName = ["市残联", "金平区残联", "龙湖区残联","濠江区残联","澄海区残联","潮阳区残联","潮南区残联","南澳县残联", \
+                '市四本部' ,'礐石','红莲池','汕大']
+        combodelegate = ComboBoxDelegate(self, lstUnitName)
         combodelegate2 = ComboBoxDelegate(self, ["市残联", "区残联", "医院"])
         self.userView.setItemDelegateForColumn(3, combodelegate)
         self.userView.setItemDelegateForColumn(4, combodelegate2)

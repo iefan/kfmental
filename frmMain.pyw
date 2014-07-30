@@ -3,7 +3,7 @@ from myimport import *
 from resources import *
 
 from frmUser import UserDlg
-from frmAdapt import AdaptDlg
+from frmMental import MentalDlg
 from frmPwd import frmPwd
 
 class MainWindow(QMainWindow):
