@@ -26,25 +26,31 @@ class MentalDlg(QDialog):
         self.MentalModel.select()
         # self.MentalModel.removeColumn(2)
         # self.MentalModel.removeColumn(0)
-        # self.MentalModel.setHeaderData(1, Qt.Horizontal, "截止日期")
-        # self.MentalModel.setHeaderData(2, Qt.Horizontal, "适配人数")
-        # self.MentalModel.setHeaderData(3, Qt.Horizontal, "适配件数")
-        # self.MentalModel.setHeaderData(4, Qt.Horizontal, "是否确认")
-
+        for indx, iheader in enumerate(LST_MENTALHEADER):
+            self.MentalModel.setHeaderData(indx+1, Qt.Horizontal, iheader)
+    
         # self.MentalModel = QStandardItemModel(0, 0, self.MentalView)
         # self.MentalModel.setHorizontalHeaderLabels(headers)
         self.MentalView.setModel(self.MentalModel)
         self.MentalView.setColumnHidden(0, True) # hide sn
-        # self.MentalView.setColumnHidden(4, True) # hide over
-        # print(2)
+
+        sexDelegate = ComboBoxDelegate(self, SEX_CHOICES)
+        self.MentalView.setItemDelegateForColumn(2, sexDelegate)
+        countyDelegate = ComboBoxDelegate(self, COUNTY_CHOICES)
+        self.MentalView.setItemDelegateForColumn(3, countyDelegate)
+        disDelegate = ComboBoxDelegate(self, DISLEVEL_CHOICES)
+        self.MentalView.setItemDelegateForColumn(5, disDelegate)
         dateDelegate = DateDelegate(self)
-        yesnoDelegate = ComboBoxDelegate(self, ["是", "否"])
-        self.MentalView.setItemDelegateForColumn(1, dateDelegate)
-        # self.MentalView.setItemDelegateForColumn(4, yesnodelegate)
-
-        self.MentalView.setItemDelegateForColumn(4, yesnoDelegate)
-        # print(yesnodelegate)
-
+        self.MentalView.setItemDelegateForColumn(6, dateDelegate)
+        econDelegate = ComboBoxDelegate(self, ECON_CHOICES)
+        self.MentalView.setItemDelegateForColumn(7, econDelegate)
+        cityDelegate = ComboBoxDelegate(self, CITY_CHOICE)
+        self.MentalView.setItemDelegateForColumn(8, cityDelegate) 
+        relaDelegate = ComboBoxDelegate(self, RELASHIP_CHOICES)
+        self.MentalView.setItemDelegateForColumn(11, relaDelegate)
+        date2Delegate = DateDelegate(self)
+        self.MentalView.setItemDelegateForColumn(14, date2Delegate)
+        
 
         self.MentalView.setStyleSheet("QTableView::item:hover {background-color: rgba(100,200,220,100);} ")
         # self.MentalView.setSelectionBehavior(QAbstractItemView.SelectItems)
