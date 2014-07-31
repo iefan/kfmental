@@ -1,5 +1,62 @@
 from myimport import *
 
+class PersonIdDelegate(QItemDelegate):
+    def __init__(self, parent):
+        QItemDelegate.__init__(self, parent)
+        # itemslist = ["a", "b", "c"]
+        self.parent = parent
+
+    def createEditor(self,parent,option,index):
+        editor = QLineEdit(parent)
+        regExp = QRegExp("^[0-9]{15,17}X?x?$")
+        editor.setValidator(QRegExpValidator(regExp, parent))
+        editor.installEventFilter(self)
+        return editor
+
+    def setEditorData(self,editor,index):        
+        # print('---', index.data(Qt.DisplayRole))
+        # text = index.data(Qt.DisplayRole)
+        text = index.model().data(index)
+        if type(text)== QPyNullVariant:
+            text = ""
+        edit = editor
+        edit.setText(text)
+
+    def setModelData(self,editor,model,index):
+        text = editor.text()        
+        model.setData(index,text)
+
+
+class PhoneDelegate(QItemDelegate):
+    def __init__(self, parent):
+        QItemDelegate.__init__(self, parent)
+        # itemslist = ["a", "b", "c"]
+        self.parent = parent
+
+    def createEditor(self,parent,option,index):
+        editor = QLineEdit(parent)
+        regExp = QRegExp("^[0-9]{8,12}$")
+        editor.setValidator(QRegExpValidator(regExp, parent))
+        editor.installEventFilter(self)
+        return editor
+
+    def setEditorData(self,editor,index):        
+        # print('---', index.data(Qt.DisplayRole))
+        # text = index.data(Qt.DisplayRole)
+        text = index.model().data(index)
+        if type(text)== QPyNullVariant:
+            text = ""
+        edit = editor
+        edit.setText(text)
+
+    def setModelData(self,editor,model,index):
+        text = editor.text()        
+        model.setData(index,text)
+
+    # def updateEditorGeometry(self, editor, option, index):
+    #     self.editor.setGeometry(option.rect)
+
+
 class DateDelegate(QItemDelegate):
     def __init__(self, parent):
         QItemDelegate.__init__(self, parent)
@@ -42,16 +99,15 @@ class DateDelegate(QItemDelegate):
         edit.setDate(date)
    
     def setModelData(self,editor,model,index):
-        date = editor.date()
-        newdate = date.addMonths(1).toPyDate()
-        # print(newdate, type(newdate))
-        # a = newdate - datetime.timedelta(newdate.day)
-        text = (newdate - datetime.timedelta(newdate.day)).isoformat()
-        # addMonths 
+        date = editor.date().toString(Qt.ISODate)
+        # print(date)
+        # newdate = date.addMonths(1).toPyDate()
+        
+        # text = (newdate - datetime.timedelta(newdate.day)).isoformat()
         # print(text)
 
         # print(date, text, type(text))
-        model.setData(index,text)
+        model.setData(index,date)
 
 class ComboBoxDelegate(QItemDelegate):
     def __init__(self, parent, itemslist=["a", "b", "c"]):

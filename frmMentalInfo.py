@@ -1,6 +1,6 @@
 from resources import *
 
-from cc_delegate import ComboBoxDelegate, DateDelegate
+from cc_delegate import ComboBoxDelegate, DateDelegate, PhoneDelegate, PersonIdDelegate
 
 class MentalDlg(QDialog):
     def __init__(self,parent=None, db="", curuser={}):
@@ -33,11 +33,14 @@ class MentalDlg(QDialog):
         # self.MentalModel.setHorizontalHeaderLabels(headers)
         self.MentalView.setModel(self.MentalModel)
         self.MentalView.setColumnHidden(0, True) # hide sn
+        self.MentalView.setColumnHidden(15, True) # hide sn
 
         sexDelegate = ComboBoxDelegate(self, SEX_CHOICES)
         self.MentalView.setItemDelegateForColumn(2, sexDelegate)
         countyDelegate = ComboBoxDelegate(self, COUNTY_CHOICES)
         self.MentalView.setItemDelegateForColumn(3, countyDelegate)
+        ppidDelegate = PersonIdDelegate(self)
+        self.MentalView.setItemDelegateForColumn(4, ppidDelegate)
         disDelegate = ComboBoxDelegate(self, DISLEVEL_CHOICES)
         self.MentalView.setItemDelegateForColumn(5, disDelegate)
         dateDelegate = DateDelegate(self)
@@ -48,16 +51,26 @@ class MentalDlg(QDialog):
         self.MentalView.setItemDelegateForColumn(8, cityDelegate) 
         relaDelegate = ComboBoxDelegate(self, RELASHIP_CHOICES)
         self.MentalView.setItemDelegateForColumn(11, relaDelegate)
+
+        phoneDelegate = PhoneDelegate(self)
+        self.MentalView.setItemDelegateForColumn(12, phoneDelegate)
+        phone2Delegate = PhoneDelegate(self)
+        self.MentalView.setItemDelegateForColumn(13, phone2Delegate)
+
         date2Delegate = DateDelegate(self)
         self.MentalView.setItemDelegateForColumn(14, date2Delegate)
         
+        self.MentalView.setAlternatingRowColors(True)
+        self.MentalView.setStyleSheet("QTableView{background-color: rgb(250, 250, 115);"  
+                    "alternate-background-color: rgb(141, 163, 215);}"
+                    "QTableView::item:hover {background-color: rgba(100,200,220,100);} ") 
 
-        self.MentalView.setStyleSheet("QTableView::item:hover {background-color: rgba(100,200,220,100);} ")
+        # self.MentalView.setStyleSheet()
         # self.MentalView.setSelectionBehavior(QAbstractItemView.SelectItems)
         # self.MentalView.setSelectionMode(QAbstractItemView.SingleSelection)
         # self.MentalView.horizontalHeader().setStyleSheet("color: red");
         # self.MentalView.verticalHeader().hide()
-        self.MentalView.verticalHeader().setFixedWidth(30)
+        # self.MentalView.verticalHeader().setFixedWidth(30)
         self.MentalView.verticalHeader().setStyleSheet("color: red;font-size:20px; ");
         self.MentalView.setStyleSheet("font-size:14px; ");
         # print(4)
@@ -154,7 +167,7 @@ class MentalDlg(QDialog):
     def dbclick(self, indx):
         #当已经申核完结时，锁定当前item，禁止编辑，主要通过全局的 setEditTriggers 来设置。
         if self.curuser != {}:
-            if self.curuser["unitgroup"] == "辅具中心":
+            if self.curuser["unitgroup"] == "区残联":
                 if indx.sibling(indx.row(),4).data() == "是":
                     self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
                 else:
@@ -233,7 +246,11 @@ class MentalDlg(QDialog):
         # self.MentalModel.setFilter("1=1")
         row = self.MentalModel.rowCount()
         self.MentalModel.insertRow(row)
-        self.MentalModel.setData(self.MentalModel.index(row, 4), "否") #set default password
+
+        # theLastIndex = self.MentalModel.index(row, 1)
+        # self.MentalView.scrollTo(theLastIndex)
+        self.MentalView.scrollToBottom()
+        self.MentalModel.setData(self.MentalModel.index(row, 15), "某某") #set default password
         self.infoLabel.setText("")
         # self.MentalModel.setData(self.MentalModel.index(row, 2), "123456") #set default password
 
