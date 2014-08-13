@@ -4,6 +4,7 @@ from resources import *
 
 from frmUser import UserDlg
 from frmMentalInfo import MentalDlg
+from frmApproval import ApprovalDlg
 from frmPwd import frmPwd
 
 class MainWindow(QMainWindow):
@@ -47,7 +48,8 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon("images/login.png"))
         self.setWindowTitle("康复业务系统")
         self.setMinimumSize(480,320)
-        self.resize(720,600)
+        self.showMaximized()
+        # self.resize(720,600)
 
         self.setStyleSheet("font-size:14px;")
         
@@ -63,44 +65,6 @@ class MainWindow(QMainWindow):
     def closeMyTab(self, tabindx):
         self.tabWidget.removeTab (tabindx)
         # print(tabindx)
-
-    def createDb(self):
-        query = QSqlQuery(self.db)
-        strsqlUser = "create table User (id int not null primary key auto_increment,\
-            unitsn char(20) not null, \
-            passwd char(40) not null, \
-            unitname char(40) not null, \
-            unitclass char(40) not null, \
-            unitman  char(30) not null);"
-        
-        strsqlAdapt = "create table Adaptstat(id int not null primary key auto_increment,\
-            adaptdate date not null, \
-            adaptpersons int default 0, \
-            adapttools int default 0, \
-            isover char(10) default '否');"
-        # strsql = "create table MyClass(id int(4) not null primary key auto_increment, name char(20) not null, sex int(4) not null default '0', degree double(16,2));"
-
-        ret = query.exec_(strsqlAdapt)
-        print(ret)
-        # query.exec_("insert into user values(101, 'aa', 'bb', 'cc', 'dd', 'ee')")
-        # query.exec_("select * from recipes")
-        # while query.next():
-        #     print(query.value(0), query.value(1), query.value(2))
-            # starttime DATETIME NOT NULL,
-        # print("createdb")
-
-    # def contextMenuEvent(self, event):
-    #     menu = QMenu(self)
-    #     menu.addAction(self.cutAct)
-    #     menu.addAction(self.copyAct)
-    #     menu.addAction(self.pasteAct)
-    #     menu.exec_(event.globalPos())
-
-    # def refreshTable(self):
-    #     print("a")
-    # def resetMain(self):
-    #     .textOldPwd
-    #     print(12)
 
     def modifyPwd(self):
         dialog=frmPwd(self, db=self.db, curuser=self.curuser)
@@ -129,11 +93,27 @@ class MainWindow(QMainWindow):
         self.tabWidget.addTab(widget,curTabText)
         self.tabWidget.setCurrentWidget(widget)
         # self.lstTab.append(tabindx)
-        # self.infoLabel.setText("Invoked <b>File|New</b>")
+      
+    def ApprovalManage(self):
+        if self.curuser != {}:
+            if self.curuser["unitclass"] != "市残联" :
+                QMessageBox.warning(self, "没有授权", "当前用户没有权限进行该操作！")
+                return
+
+        curTabText = "市残联申核"
+        for tabindx in list(range(0, self.tabWidget.count())):
+            if self.tabWidget.tabText(tabindx) == curTabText:
+                self.tabWidget.setCurrentIndex(tabindx)
+                return
+
+        widget3 = ApprovalDlg(db=self.db, curuser=self.curuser)
+        tabindx = self.tabWidget.addTab(widget3,curTabText)
+        self.tabWidget.setCurrentWidget(widget3)
+
 
     def MentalManage(self):
         if self.curuser != {}:
-            if self.curuser["unitclass"] != "市残联" and self.curuser["unitclass"] != "辅具中心":
+            if self.curuser["unitclass"] != "市残联" and self.curuser["unitclass"] != "区残联":
                 QMessageBox.warning(self, "没有授权", "当前用户没有权限进行该操作！")
                 return
 
@@ -164,17 +144,14 @@ class MainWindow(QMainWindow):
         tabindx = self.tabWidget.addTab(widget2,curTabText)
         self.tabWidget.setCurrentWidget(widget2)
         # self.lstTab.append(tabindx)
-        # self.infoLabel.setText("Invoked <b>File|Open</b>")
-        	
+                	
     def about(self):
-        # self.infoLabel.setText("Invoked <b>Help|About</b>")
         QMessageBox.about(self, "关于...",
-                "本程序完成康复科日常业务数据管理! \n\n%s \n\n%s " % (CUR_VERSION, CUR_CONTACT))
+                "本程序完成汕头市精防基金结算! \n\n%s \n\n%s " % (CUR_VERSION, CUR_CONTACT))
 
     def aboutQt(self):
         pass
-        # self.infoLabel.setText("Invoked <b>Help|About Qt</b>")
-
+        
 
     def createAction(self, text, slot=None, shortcut=None, icon=None, tip=None, checkable=False, signal="triggered()"):
         action = QAction(text, self)
@@ -195,7 +172,8 @@ class MainWindow(QMainWindow):
         self.userAct        = self.createAction("用户管理(&U)", self.userManage,   "", "", "用户管理")
         self.modifyPwdAct   = self.createAction("修改密码", self.modifyPwd,   "", "", "修改用户密码")
         # self.toolAct        = self.createAction("辅具用品(&M)", self.ToolManage,   "", "", "辅具用品数量统计")
-        self.toolAct        = self.createAction("基础信息库(&M)", self.MentalManage,   "", "", "精神病人基础信息库")
+        self.mentalAct        = self.createAction("基础信息库(&M)", self.MentalManage,   "", "", "精神病人基础信息库")
+        self.approvalAct    = self.createAction("市残联申核(&M)", self.ApprovalManage,   "", "", "市残联申核")
         self.exitAct        = self.createAction("退出(&X)", self.close,   "Ctrl+Q", "", "退出系统")
         self.aboutAct       = self.createAction("关于(&A)", self.about,   "", "", "显示当前系统的基本信息")
         self.aboutQtAct     = self.createAction("关于Qt(&Q)", self.aboutQt,   "", "", "显示Qt库的基本信息")
@@ -207,9 +185,12 @@ class MainWindow(QMainWindow):
         self.fileMenu.addAction(self.modifyPwdAct)        
         self.fileMenu.addAction(self.exitAct)
 
-        self.editMenu = self.menuBar().addMenu("业务管理(&F)")
-        self.editMenu.addAction(self.toolAct)
+        self.editMenu = self.menuBar().addMenu("基础信息及申请(&F)")
+        self.editMenu.addAction(self.mentalAct)
         
+        self.approvalMenu = self.menuBar().addMenu("市残联申核(&A)")
+        self.approvalMenu.addAction(self.approvalAct)
+
         self.helpMenu = self.menuBar().addMenu("关于(&H)")
         self.helpMenu.addAction(self.aboutAct)
         self.helpMenu.addAction(self.aboutQtAct)

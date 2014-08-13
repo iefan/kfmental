@@ -82,48 +82,38 @@ class MentalDlg(QDialog):
         savebtn         = QPushButton("保存")
         revertbtn       = QPushButton("撤销")
         removebtn       = QPushButton("删除")
+        applybtn        = QPushButton("申请")
+
         btnbox.addButton(newusrbtn, QDialogButtonBox.ActionRole);
         btnbox.addButton(savebtn, QDialogButtonBox.ActionRole);
         btnbox.addButton(revertbtn, QDialogButtonBox.ActionRole);
         btnbox.addButton(removebtn, QDialogButtonBox.ActionRole);
+        btnbox.addButton(applybtn, QDialogButtonBox.ActionRole);
 
         self.infoLabel = QLabel("", alignment=Qt.AlignLeft)
         self.infoLabel.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
 
-        # bottomFiller = QWidget()
-        # bottomFiller.setSizePolicy(QSizePolicy.Expanding,
-        #         QSizePolicy.Expanding)
 
-        # callerLabel = QLabel("&Caller:")
-        # self.callerEdit = QLineEdit()
-        # callerLabel.setBuddy(self.callerEdit)
-        today = QDate.currentDate()
+        nameLabel       = QLabel("姓名:")
+        self.nameEdit   = QLineEdit()
+        regExp = QRegExp("[^']*")
+        self.nameEdit.setValidator(QRegExpValidator(regExp, self))
+        nameLabel.setBuddy(self.nameEdit)
 
-        self.yearCheckbox = QCheckBox("按年份")
-        # self.yearCheckbox.setStyleSheet("font-size:14px; text-align:right;")
-        self.yearDateTime = QDateTimeEdit()
-        self.yearDateTime = QDateTimeEdit()
-        self.yearDateTime.setDate(today)
-        self.yearDateTime.setDisplayFormat('yyyy')
-        self.yearDateTime.setEnabled(False)
+        personIdLabel   = QLabel("身份证号:")
+        self.ppidEdit   = QLineEdit()
+        personIdLabel.setBuddy(self.ppidEdit)
+        regExp = QRegExp("^[0-9]{8,12}$")
+        self.ppidEdit.setValidator(QRegExpValidator(regExp, self))
+        
+        countyLabel      = QLabel("区县名称:")
+        self.countyCombo = QComboBox(self)
+        self.countyCombo.addItems(COUNTY_CHOICES)
+        self.countyCombo.insertItem(0, "")
+        self.countyCombo.setCurrentIndex(0)
+        countyLabel.setBuddy(self.countyCombo)
 
-        startLabel = QLabel("起始月份:")
-        self.startDateTime = QDateTimeEdit()
-        startLabel.setBuddy(self.startDateTime)
-        # self.startDateTime.setSelectedSection(QDateTimeEdit.MonthSection | QDateTimeEdit.YearSection)
-        self.startDateTime.setDate(today)
-        # self.startDateTime.setDateRange(today, today)
-        self.startDateTime.setDisplayFormat(DATETIME_FORMAT)
-        # self.startDateTime.setCalendarPopup(True)
-        # self.startDateTime.setCurrentSection(QDateTimeEdit.MonthSection)
 
-        endLabel = QLabel("截止月份:")
-        self.endDateTime = QDateTimeEdit()
-        endLabel.setBuddy(self.endDateTime)
-        self.endDateTime.setDate(today)
-        # self.endDateTime.setCalendarPopup(True)
-        # self.endDateTime.setDateRange(today, today)
-        self.endDateTime.setDisplayFormat(DATETIME_FORMAT)
         findbutton = QPushButton("查询")
         # findbutton.setIcon(QIcon(":/first.png"))
 
@@ -131,14 +121,17 @@ class MentalDlg(QDialog):
         findbox.setMargin(10)
         findbox.setAlignment(Qt.AlignHCenter);
         # findbox.addWidget(self.callerEdit)
-        findbox.addWidget(self.yearCheckbox)
-        findbox.addWidget(self.yearDateTime)
-        findbox.addSpacing(20)
-        findbox.addWidget(startLabel)
-        findbox.addWidget(self.startDateTime)
-        findbox.addWidget(endLabel)
-        findbox.addWidget(self.endDateTime)
+        findbox.addStretch (10)
+        findbox.addWidget(nameLabel)
+        findbox.addWidget(self.nameEdit)
+        findbox.addStretch (10)
+        findbox.addWidget(personIdLabel)
+        findbox.addWidget(self.ppidEdit)
+        findbox.addStretch (10)
+        findbox.addWidget(countyLabel)
+        findbox.addWidget(self.countyCombo)
         findbox.addWidget(findbutton)
+        findbox.addStretch (10)
 
         vbox = QVBoxLayout()
         vbox.setMargin(5)
@@ -152,8 +145,10 @@ class MentalDlg(QDialog):
         newusrbtn.clicked.connect(self.newMental)
         revertbtn.clicked.connect(self.revertMental)
         removebtn.clicked.connect(self.removeMental)
+        applybtn.clicked.connect(self.applyMental)
+
         findbutton.clicked.connect(self.findMental)
-        self.yearCheckbox.stateChanged.connect(self.yearCheck)
+        # self.yearCheckbox.stateChanged.connect(self.yearCheck)
         # self.MentalView.clicked.connect(self.tableClick)
         # self.connect(savebtn, SIGNAL('clicked()'), self.saveMental)
         self.dispTotalnums()
@@ -167,55 +162,48 @@ class MentalDlg(QDialog):
     def dbclick(self, indx):
         #当已经申核完结时，锁定当前item，禁止编辑，主要通过全局的 setEditTriggers 来设置。
         if self.curuser != {}:
-            if self.curuser["unitgroup"] == "区残联":
-                if indx.sibling(indx.row(),4).data() == "是":
-                    self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-                else:
-                    self.MentalView.setEditTriggers(QAbstractItemView.DoubleClicked)
+            if self.curuser["unitgroup"] == "市残联" or self.curuser["unitgroup"] == "区残联":
+                self.MentalView.setEditTriggers(QAbstractItemView.DoubleClicked)
+            else:
+                self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-                if indx.column() == 4:
-                    self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+                # if indx.sibling(indx.row(),4).data() == "是":
+                #     self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+                # else:
+                #     self.MentalView.setEditTriggers(QAbstractItemView.DoubleClicked)
 
+                # if indx.column() == 4:
+                #     self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-    def yearCheck(self):
-        if self.yearCheckbox.isChecked():
-            self.startDateTime.setEnabled(False)
-            self.endDateTime.setEnabled(False)
-            self.yearDateTime.setEnabled(True)
-        else:
-            self.startDateTime.setEnabled(True)
-            self.endDateTime.setEnabled(True)
-            self.yearDateTime.setEnabled(False)
 
     def dispTotalnums(self, strwhere="1=1"):
         query = QSqlQuery(self.db)
-        strsql = "SELECT sum(Mentalpersons), sum(Mentaltools) FROM Mentalstat where " + strwhere
+        strsql = "SELECT count(*) FROM mentalmodel where " + strwhere
         ret= query.exec_(strsql);
+        query.next()
         # print(ret, "~~~~~~~", strsql)
-        total_personnums = 0
-        total_toolnums = 0
-        while query.next():
-            if type(query.value(0))== QPyNullVariant:
-                break
-            total_personnums += query.value(0)
-            total_toolnums   += query.value(1)
+        # total_personnums = 0
+        # total_toolnums = 0
+        # while query.next():
+        #     if type(query.value(0))== QPyNullVariant:
+        #         break
+        #     total_personnums += query.value(0)
+        #     total_toolnums   += query.value(1)
             # print(query.value(0), query.value(1))
 
         # print(total_personnums, total_toolnums, "==")
-        self.infoLabel.setText("合计：适配人数 <font color='red'>%d</font> ，总件数 <font color='red'>%d</font> 。" % (int(total_personnums), int(total_toolnums)))
+        self.infoLabel.setText("合计：当前查询人数 <font color='red'>%d</font> " % int(query.value(0)))
 
     def findMental(self):
-        yeardate  = self.yearDateTime.date().year()
-        startdate = self.startDateTime.date().toPyDate()
-        # print(startdate)
-        startdate = (startdate - datetime.timedelta(startdate.day-1)).isoformat()
-        enddate   = self.endDateTime.date().addMonths(1).toPyDate()
-        enddate   = (enddate - datetime.timedelta(enddate.day-1)).isoformat()
+        name        = self.nameEdit.text()
+        ppid        = self.ppidEdit.text()
+        county      = self.countyCombo.currentText()
+        strwhere    = "name like '%%%s%%' and ppid like '%%%s%%' and county like '%%%s%%'" % (name, ppid, county)
 
-        if self.yearCheckbox.isChecked():
-            strwhere = "year(Mentaldate)=%d" % yeardate
-        else:
-            strwhere = "Mentaldate > '%s' and Mentaldate < '%s' " % (startdate, enddate)
+        # if self.yearCheckbox.isChecked():
+        #     strwhere = "year(Mentaldate)=%d" % yeardate
+        # else:
+        #     strwhere = "Mentaldate > '%s' and Mentaldate < '%s' " % (startdate, enddate)
         # print(strwhere)
         # print(startdate, enddate, yeardate)
         self.MentalModel.setFilter(strwhere)
@@ -225,15 +213,21 @@ class MentalDlg(QDialog):
 
         # self.MentalModel.setFilter("")
 
+    def applyMental(self):
+        index = self.MentalView.currentIndex()
+        row = index.row()
+
     def removeMental(self):
         index = self.MentalView.currentIndex()
         row = index.row()
-        nameid = self.MentalModel.data(self.MentalModel.index(row, 0))
-        self.MentalModel.removeRows(row, 1)
-        self.MentalModel.submitAll()
-        self.MentalModel.database().commit()
+        if row != -1:
+            ppname = self.MentalModel.data(self.MentalModel.index(row, 1))
+            if QMessageBox.question(self, "删除确认", "是否要删除当前选中记录？\n\n姓名：%s\n\n" % ppname, "确定", "取消") == 0:
+                self.MentalModel.removeRows(row, 1)
+                self.MentalModel.submitAll()
+                self.MentalModel.database().commit()
 
-        self.infoLabel.setText("")
+                self.infoLabel.setText("")
 
         # print("nameid")
         
