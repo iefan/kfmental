@@ -38,10 +38,14 @@ class ApprovalDlg(QDialog):
         self.ApprovalView.setColumnWidth(4, 120)
         # self.ApprovalView.setColumnHidden(15, True) # hide sn
 
-        # sexDelegate = ComboBoxDelegate(self, SEX_CHOICES)
-        # self.ApprovalView.setItemDelegateForColumn(2, sexDelegate)
-        # countyDelegate = ComboBoxDelegate(self, COUNTY_CHOICES)
-        # self.ApprovalView.setItemDelegateForColumn(3, countyDelegate)
+        self.ApprovalView.setItemDelegateForColumn(8, ComboBoxDelegate(self, HOSPITAL_CHOICES))
+        self.ApprovalView.setItemDelegateForColumn(9, ComboBoxDelegate(self, PERIOD_CHOICES))
+        self.ApprovalView.setItemDelegateForColumn(10, ComboBoxDelegate(self, YESNO_CHOICES))
+        self.ApprovalView.setItemDelegateForColumn(12, ComboBoxDelegate(self, CONTINUE_CHOICES))
+        self.ApprovalView.setItemDelegateForColumn(13, DateDelegate(self))
+        self.ApprovalView.setItemDelegateForColumn(14, DateDelegate(self))
+        self.ApprovalView.setItemDelegateForColumn(15, ComboBoxDelegate(self, ISAPPROVAL_CHOICES))
+        self.ApprovalView.setItemDelegateForColumn(16, DateDelegate(self))
         # ppidDelegate = PersonIdDelegate(self)
         # self.ApprovalView.setItemDelegateForColumn(4, ppidDelegate)
         # disDelegate = ComboBoxDelegate(self, DISLEVEL_CHOICES)
@@ -163,7 +167,7 @@ class ApprovalDlg(QDialog):
         self.db.close()
 
     def dbclick(self, indx):
-        if indx.column() in [1,2,3,4,5,6,7]:
+        if indx.column() in [1,2,3,4,5,6,7,17]:
             self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         else:
             self.ApprovalView.setEditTriggers(QAbstractItemView.DoubleClicked)
@@ -190,7 +194,7 @@ class ApprovalDlg(QDialog):
 
     def dispTotalnums(self, strwhere="1=1"):
         query = QSqlQuery(self.db)
-        strsql = "SELECT count(*) FROM Approvalmodel where " + strwhere
+        strsql = "SELECT count(*) FROM approvalmodel where " + strwhere
         ret= query.exec_(strsql);
         query.next()
         # print(ret, "~~~~~~~", strsql)
