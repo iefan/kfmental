@@ -6,17 +6,12 @@ class ApprovalDlg(QDialog):
     def __init__(self,parent=None, db="", curuser={}):
         super(ApprovalDlg,self).__init__(parent)
 
-        # widget = QWidget()               
-
-        # self.setCentralWidget(widget)
         if db == "":
             self.db = globaldb()
         else:
             self.db = db
 
         self.curuser = curuser
-
-        # headers = ["月份", "适配人数", "适配件数", "是否确认"]
 
         self.ApprovalView = QTableView()
         self.ApprovalModel = QSqlRelationalTableModel(self.ApprovalView)
@@ -38,34 +33,14 @@ class ApprovalDlg(QDialog):
         self.ApprovalView.setColumnWidth(4, 120)
         # self.ApprovalView.setColumnHidden(15, True) # hide sn
 
-        self.ApprovalView.setItemDelegateForColumn(8, ComboBoxDelegate(self, HOSPITAL_CHOICES))
-        self.ApprovalView.setItemDelegateForColumn(9, ComboBoxDelegate(self, PERIOD_CHOICES))
+        self.ApprovalView.setItemDelegateForColumn(8,  ComboBoxDelegate(self, HOSPITAL_CHOICES))
+        self.ApprovalView.setItemDelegateForColumn(9,  ComboBoxDelegate(self, PERIOD_CHOICES))
         self.ApprovalView.setItemDelegateForColumn(10, ComboBoxDelegate(self, YESNO_CHOICES))
         self.ApprovalView.setItemDelegateForColumn(12, ComboBoxDelegate(self, CONTINUE_CHOICES))
         self.ApprovalView.setItemDelegateForColumn(13, DateDelegate(self))
         self.ApprovalView.setItemDelegateForColumn(14, DateDelegate(self))
         self.ApprovalView.setItemDelegateForColumn(15, ComboBoxDelegate(self, ISAPPROVAL_CHOICES))
         self.ApprovalView.setItemDelegateForColumn(16, DateDelegate(self))
-        # ppidDelegate = PersonIdDelegate(self)
-        # self.ApprovalView.setItemDelegateForColumn(4, ppidDelegate)
-        # disDelegate = ComboBoxDelegate(self, DISLEVEL_CHOICES)
-        # self.ApprovalView.setItemDelegateForColumn(5, disDelegate)
-        # dateDelegate = DateDelegate(self)
-        # self.ApprovalView.setItemDelegateForColumn(6, dateDelegate)
-        # econDelegate = ComboBoxDelegate(self, ECON_CHOICES)
-        # self.ApprovalView.setItemDelegateForColumn(7, econDelegate)
-        # cityDelegate = ComboBoxDelegate(self, CITY_CHOICE)
-        # self.ApprovalView.setItemDelegateForColumn(8, cityDelegate) 
-        # relaDelegate = ComboBoxDelegate(self, RELASHIP_CHOICES)
-        # self.ApprovalView.setItemDelegateForColumn(11, relaDelegate)
-
-        # phoneDelegate = PhoneDelegate(self)
-        # self.ApprovalView.setItemDelegateForColumn(12, phoneDelegate)
-        # phone2Delegate = PhoneDelegate(self)
-        # self.ApprovalView.setItemDelegateForColumn(13, phone2Delegate)
-
-        # date2Delegate = DateDelegate(self)
-        # self.ApprovalView.setItemDelegateForColumn(14, date2Delegate)
         
         self.ApprovalView.setAlternatingRowColors(True)
         self.ApprovalView.setStyleSheet("QTableView{background-color: rgb(250, 250, 115);"  
@@ -85,13 +60,11 @@ class ApprovalDlg(QDialog):
         self.ApprovalView.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         btnbox = QDialogButtonBox(Qt.Horizontal)
-        newusrbtn       = QPushButton("新增")
         savebtn         = QPushButton("保存")
         revertbtn       = QPushButton("撤销")
         removebtn       = QPushButton("删除")
         approvalbtn     = QPushButton("批准")
 
-        btnbox.addButton(newusrbtn, QDialogButtonBox.ActionRole);
         btnbox.addButton(savebtn, QDialogButtonBox.ActionRole);
         btnbox.addButton(revertbtn, QDialogButtonBox.ActionRole);
         btnbox.addButton(removebtn, QDialogButtonBox.ActionRole);
@@ -106,19 +79,34 @@ class ApprovalDlg(QDialog):
         regExp = QRegExp("[^']*")
         self.nameEdit.setValidator(QRegExpValidator(regExp, self))
         nameLabel.setBuddy(self.nameEdit)
-
-        personIdLabel   = QLabel("身份证号:")
-        self.ppidEdit   = QLineEdit()
-        personIdLabel.setBuddy(self.ppidEdit)
-        regExp = QRegExp("^[0-9]{8,12}$")
-        self.ppidEdit.setValidator(QRegExpValidator(regExp, self))
         
-        countyLabel      = QLabel("区县名称:")
-        self.countyCombo = QComboBox(self)
-        self.countyCombo.addItems(COUNTY_CHOICES)
-        self.countyCombo.insertItem(0, "")
-        self.countyCombo.setCurrentIndex(0)
-        countyLabel.setBuddy(self.countyCombo)
+        hospitalLabel      = QLabel("医疗机构:")
+        self.hospitalCombo = QComboBox(self)
+        self.hospitalCombo.addItems(HOSPITAL_CHOICES)
+        self.hospitalCombo.insertItem(0, "")
+        self.hospitalCombo.setCurrentIndex(0)
+        hospitalLabel.setBuddy(self.hospitalCombo)
+
+        periodLabel      = QLabel("救助疗程:")
+        self.periodCombo = QComboBox(self)
+        self.periodCombo.addItems(PERIOD_CHOICES)
+        self.periodCombo.insertItem(0, "")
+        self.periodCombo.setCurrentIndex(0)
+        periodLabel.setBuddy(self.periodCombo)
+
+        foodLabel      = QLabel("伙食补助:")
+        self.foodCombo = QComboBox(self)
+        self.foodCombo.addItems(YESNO_CHOICES)
+        self.foodCombo.insertItem(0, "")
+        self.foodCombo.setCurrentIndex(0)
+        foodLabel.setBuddy(self.hospitalCombo)
+
+        approvalresultLabel      = QLabel("审核结果:")
+        self.approvalresultCombo = QComboBox(self)
+        self.approvalresultCombo.addItems(ISAPPROVAL_CHOICES)
+        self.approvalresultCombo.insertItem(0, "")
+        self.approvalresultCombo.setCurrentIndex(0)
+        approvalresultLabel.setBuddy(self.approvalresultCombo)
 
 
         findbutton = QPushButton("查询")
@@ -132,11 +120,17 @@ class ApprovalDlg(QDialog):
         findbox.addWidget(nameLabel)
         findbox.addWidget(self.nameEdit)
         findbox.addStretch (10)
-        findbox.addWidget(personIdLabel)
-        findbox.addWidget(self.ppidEdit)
+        findbox.addWidget(hospitalLabel)
+        findbox.addWidget(self.hospitalCombo)
         findbox.addStretch (10)
-        findbox.addWidget(countyLabel)
-        findbox.addWidget(self.countyCombo)
+        findbox.addWidget(periodLabel)
+        findbox.addWidget(self.periodCombo)
+        findbox.addStretch (10)
+        findbox.addWidget(foodLabel)
+        findbox.addWidget(self.foodCombo)
+        findbox.addStretch (10)
+        findbox.addWidget(approvalresultLabel)
+        findbox.addWidget(self.approvalresultCombo)
         findbox.addWidget(findbutton)
         findbox.addStretch (10)
 
@@ -149,7 +143,6 @@ class ApprovalDlg(QDialog):
         self.setLayout(vbox)
 
         savebtn.clicked.connect(self.saveApproval)
-        newusrbtn.clicked.connect(self.newApproval)
         revertbtn.clicked.connect(self.revertApproval)
         removebtn.clicked.connect(self.removeApproval)
         approvalbtn.clicked.connect(self.okApproval)
@@ -162,15 +155,32 @@ class ApprovalDlg(QDialog):
         # self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.ApprovalView.doubleClicked.connect(self.dbclick)
 
+        # self.ApprovalModel.emit(SIGNAL('dataChanged(QModelIndex,QModelIndex)'), self.ApprovalModel.index(1, 5), self.ApprovalModel.index(1, 5))
+
+        # self.ApprovalView.dataChanged.connect(self.approvalItemChange)
+
+    # def dataChanged(self, topleft, bottomright):
+    #     print(topleft.data())
+        # QAbstractItemView.dataChanged(topleft, bottomright)
+        # print(topleft, '2')
+        # print(topleft.column() )
+        # print(topleft.data(), bottomright.sibling(indx.row(),15))
 
     def closeEvent(self, event):
         self.db.close()
 
     def dbclick(self, indx):
+        # print(indx)
+        
         if indx.column() in [1,2,3,4,5,6,7,17]:
             self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         else:
             self.ApprovalView.setEditTriggers(QAbstractItemView.DoubleClicked)
+
+        # self.connect(self.ApprovalModel, SIGNAL('dataChanged(QModelIndex,QModelIndex)'), SLOT(self.dataChanged(indx,indx)))
+        # if indx.sibling(indx.row(),15).data() == "同意":
+        #     self.ApprovalModel.setData(self.ApprovalModel.index(indx.row(), 1), 'aaaa2004')
+
 
 
         #当已经申核完结时，锁定当前item，禁止编辑，主要通过全局的 setEditTriggers 来设置。
@@ -191,30 +201,18 @@ class ApprovalDlg(QDialog):
                 # if indx.column() == 4:
                 #     self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-
-    def dispTotalnums(self, strwhere="1=1"):
-        query = QSqlQuery(self.db)
-        strsql = "SELECT count(*) FROM approvalmodel where " + strwhere
-        ret= query.exec_(strsql);
-        query.next()
-        # print(ret, "~~~~~~~", strsql)
-        # total_personnums = 0
-        # total_toolnums = 0
-        # while query.next():
-        #     if type(query.value(0))== QPyNullVariant:
-        #         break
-        #     total_personnums += query.value(0)
-        #     total_toolnums   += query.value(1)
-            # print(query.value(0), query.value(1))
-
-        # print(total_personnums, total_toolnums, "==")
-        self.infoLabel.setText("合计：当前查询人数 <font color='red'>%d</font> " % int(query.value(0)))
-
     def findApproval(self):
-        name        = self.nameEdit.text()
-        ppid        = self.ppidEdit.text()
-        county      = self.countyCombo.currentText()
-        strwhere    = "name like '%%%s%%' and ppid like '%%%s%%' and county like '%%%s%%'" % (name, ppid, county)
+        name                = self.nameEdit.text()
+        hospital            = self.hospitalCombo.currentText()
+        period              = self.periodCombo.currentText()
+        foodallow           = self.foodCombo.currentText()
+        approvalresult      = self.approvalresultCombo.currentText()
+        strwhere    = "relTblAl_2.name like '%%%s%%' and \
+                (hospital like '%%%s%%' or hospital is NULL) and \
+                (period like '%%%s%%' or period is NULL) and \
+                (foodallow like '%%%s%%' or foodallow is NULL ) and \
+                (isapproval like '%%%s%%' or isapproval is NULL)" % \
+                (name, hospital, period, foodallow, approvalresult)
 
         # if self.yearCheckbox.isChecked():
         #     strwhere = "year(Approvaldate)=%d" % yeardate
@@ -225,13 +223,31 @@ class ApprovalDlg(QDialog):
         self.ApprovalModel.setFilter(strwhere)
         self.ApprovalModel.select()
 
-        self.dispTotalnums(strwhere)
+        self.infoLabel.setText("合计：当前查询人数 <font color='red'>%d</font> " % int(self.ApprovalModel.rowCount()))
 
         # self.ApprovalModel.setFilter("")
 
     def okApproval(self):
         index = self.ApprovalView.currentIndex()
         row = index.row()
+        hospital = self.ApprovalModel.data(self.ApprovalModel.index(row, 8))
+        period   = self.ApprovalModel.data(self.ApprovalModel.index(row, 9))
+        food     = self.ApprovalModel.data(self.ApprovalModel.index(row, 10))
+        startdate= self.ApprovalModel.data(self.ApprovalModel.index(row, 13))
+        enddate  = self.ApprovalModel.data(self.ApprovalModel.index(row, 14))
+        if type(hospital)==QPyNullVariant or type(period)==QPyNullVariant or type(food)==QPyNullVariant or type(startdate)==QDate or type(enddate)==QDate:
+            QMessageBox.warning(self, "提醒", "仍有审批项目未正确填写!")
+            return
+        if self.curuser == {}:
+            approvalman = "某某"
+        else:
+            approvalman = self.unitman
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 1), datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")) 
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 11), 1) 
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 12), "") 
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 15), '同意') #set default password
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 16), QDate.currentDate()) 
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 17), approvalman) 
 
     def removeApproval(self):
         index = self.ApprovalView.currentIndex()
@@ -252,18 +268,6 @@ class ApprovalDlg(QDialog):
         self.ApprovalModel.database().rollback()
         self.infoLabel.setText("")
 
-    def newApproval(self):
-        # self.ApprovalModel.setFilter("1=1")
-        row = self.ApprovalModel.rowCount()
-        self.ApprovalModel.insertRow(row)
-
-        # theLastIndex = self.ApprovalModel.index(row, 1)
-        # self.ApprovalView.scrollTo(theLastIndex)
-        self.ApprovalView.scrollToBottom()
-        self.ApprovalModel.setData(self.ApprovalModel.index(row, 15), "某某") #set default password
-        self.infoLabel.setText("")
-        # self.ApprovalModel.setData(self.ApprovalModel.index(row, 2), "123456") #set default password
-
     def saveApproval(self):
         self.ApprovalModel.database().transaction()
         if self.ApprovalModel.submitAll():
@@ -274,8 +278,10 @@ class ApprovalDlg(QDialog):
             self.ApprovalModel.database().rollback()
             # print("save fail!  ->rollback")
 
-        self.ApprovalModel.setFilter("1=1")
-        self.infoLabel.setText("")
+        self.findApproval()
+
+        # self.ApprovalModel.setFilter("1=1")
+        # self.infoLabel.setText("")
         # model->database().transaction();
         # tmpitem = QStandardItem("张三")
         # self.ApprovalModel.setItem(0, 0, tmpitem)

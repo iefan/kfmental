@@ -167,6 +167,8 @@ class ComboBoxDelegate(QItemDelegate):
         curindx = self.editor.currentIndex()
         text = self.itemslist[curindx]
         model.setData(index, text)
+        # print(text, '-----delegate----')
+        # model.emit(SIGNAL('dataChanged(QModelIndex,QModelIndex)'), model.index(1, 8), model.index(1, 8))
 
 
     # def updateEditorGeometry(self, editor, option, index):
