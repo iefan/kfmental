@@ -26,6 +26,7 @@ class ApprovalDlg(QDialog):
         self.ApprovalView.setColumnHidden(0, True) # hide sn
 
         hideColList = list(range(18,43))
+        hideColList.remove(19)
         for icol in hideColList:
             self.ApprovalView.setColumnHidden(icol, True) # hide sn
 
@@ -172,10 +173,13 @@ class ApprovalDlg(QDialog):
     def dbclick(self, indx):
         # print(indx)
         
-        if indx.column() in [1,2,3,4,5,6,7,17]:
+        if indx.column() in [1,2,3,4,5,6,7,17, 21]:
             self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         else:
-            self.ApprovalView.setEditTriggers(QAbstractItemView.DoubleClicked)
+            if indx.sibling(indx.row(),21).data() == "已确认":
+                self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            else:
+                self.ApprovalView.setEditTriggers(QAbstractItemView.DoubleClicked)
 
         # self.connect(self.ApprovalModel, SIGNAL('dataChanged(QModelIndex,QModelIndex)'), SLOT(self.dataChanged(indx,indx)))
         # if indx.sibling(indx.row(),15).data() == "同意":
@@ -235,7 +239,9 @@ class ApprovalDlg(QDialog):
         food     = self.ApprovalModel.data(self.ApprovalModel.index(row, 10))
         startdate= self.ApprovalModel.data(self.ApprovalModel.index(row, 13))
         enddate  = self.ApprovalModel.data(self.ApprovalModel.index(row, 14))
-        if type(hospital)==QPyNullVariant or type(period)==QPyNullVariant or type(food)==QPyNullVariant or type(startdate)==QDate or type(enddate)==QDate:
+        # print(hospital, period, food, startdate, enddate)
+        # print(type(startdate)==QDate )
+        if type(hospital)==QPyNullVariant or type(period)==QPyNullVariant or type(food)==QPyNullVariant or (type(startdate)==QDate and startdate.isNull()) or (type(enddate)==QDate and enddate.isNull()):
             QMessageBox.warning(self, "提醒", "仍有审批项目未正确填写!")
             return
         if self.curuser == {}:
@@ -245,9 +251,17 @@ class ApprovalDlg(QDialog):
         self.ApprovalModel.setData(self.ApprovalModel.index(row, 1), datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")) 
         self.ApprovalModel.setData(self.ApprovalModel.index(row, 11), 1) 
         self.ApprovalModel.setData(self.ApprovalModel.index(row, 12), "") 
-        self.ApprovalModel.setData(self.ApprovalModel.index(row, 15), '同意') #set default password
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 15), '同意') 
         self.ApprovalModel.setData(self.ApprovalModel.index(row, 16), QDate.currentDate()) 
         self.ApprovalModel.setData(self.ApprovalModel.index(row, 17), approvalman) 
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 20), '未确认') 
+
+        if period == "急性":
+            self.ApprovalModel.setData(self.ApprovalModel.index(row, 38), 64) #急性64/天，慢性57/天
+        else:
+            self.ApprovalModel.setData(self.ApprovalModel.index(row, 38), 57) #急性64/天，慢性57/天
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 39), 14) #每天伙食补助14
+
 
     def removeApproval(self):
         index = self.ApprovalView.currentIndex()

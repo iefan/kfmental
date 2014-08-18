@@ -7,6 +7,8 @@ from frmMentalInfo import MentalDlg
 from frmApproval import ApprovalDlg
 from frmApply import ApplyDlg
 from frmPwd import frmPwd
+from frmHospital import HospitalDlg
+from frmCalc import CalcDlg
 
 class MainWindow(QMainWindow):
     def __init__(self, db="", curuser = {}):
@@ -127,6 +129,38 @@ class MainWindow(QMainWindow):
         tabindx = self.tabWidget.addTab(widget3,curTabText)
         self.tabWidget.setCurrentWidget(widget3)
 
+    def CalcManage(self):
+        if self.curuser != {}:
+            if self.curuser["unitgroup"] != "市残联" or self.curuser["unitgroup"] != "医院" :
+                QMessageBox.warning(self, "没有授权", "当前用户没有权限进行该操作！")
+                return
+
+        curTabText = "出院费用结算"
+        for tabindx in list(range(0, self.tabWidget.count())):
+            if self.tabWidget.tabText(tabindx) == curTabText:
+                self.tabWidget.setCurrentIndex(tabindx)
+                return
+
+        widget = CalcDlg(db=self.db, curuser=self.curuser)
+        tabindx = self.tabWidget.addTab(widget,curTabText)
+        self.tabWidget.setCurrentWidget(widget)
+
+    
+    def HospitalManage(self):
+        if self.curuser != {}:
+            if self.curuser["unitgroup"] != "市残联" or self.curuser["unitgroup"] != "医院" :
+                QMessageBox.warning(self, "没有授权", "当前用户没有权限进行该操作！")
+                return
+
+        curTabText = "确认出入院"
+        for tabindx in list(range(0, self.tabWidget.count())):
+            if self.tabWidget.tabText(tabindx) == curTabText:
+                self.tabWidget.setCurrentIndex(tabindx)
+                return
+
+        widget = HospitalDlg(db=self.db, curuser=self.curuser)
+        tabindx = self.tabWidget.addTab(widget,curTabText)
+        self.tabWidget.setCurrentWidget(widget)
 
     def MentalManage(self):
         if self.curuser != {}:
@@ -189,9 +223,11 @@ class MainWindow(QMainWindow):
         self.userAct        = self.createAction("用户管理(&U)", self.userManage,   "", "", "用户管理")
         self.modifyPwdAct   = self.createAction("修改密码", self.modifyPwd,   "", "", "修改用户密码")
         # self.toolAct        = self.createAction("辅具用品(&M)", self.ToolManage,   "", "", "辅具用品数量统计")
-        self.mentalAct        = self.createAction("基础信息库(&M)", self.MentalManage,   "", "", "精神病人基础信息库")
-        self.applyAct        = self.createAction("住院申请(&I)", self.ApplyManage,   "", "", "住院申请")
+        self.mentalAct      = self.createAction("基础信息库(&M)", self.MentalManage,   "", "", "精神病人基础信息库")
+        self.applyAct       = self.createAction("住院申请(&I)", self.ApplyManage,   "", "", "住院申请")
         self.approvalAct    = self.createAction("市残联申核(&A)", self.ApprovalManage,   "", "", "市残联申核")
+        self.hospitalAct    = self.createAction("确认出入院(&A)", self.HospitalManage,   "", "", "确认出入院")
+        self.calcAct        = self.createAction("出院费用结算(&A)", self.CalcManage,   "", "", "出院费用结算")
         self.exitAct        = self.createAction("退出(&X)", self.close,   "Ctrl+Q", "", "退出系统")
         self.aboutAct       = self.createAction("关于(&A)", self.about,   "", "", "显示当前系统的基本信息")
         self.aboutQtAct     = self.createAction("关于Qt(&Q)", self.aboutQt,   "", "", "显示Qt库的基本信息")
@@ -209,6 +245,10 @@ class MainWindow(QMainWindow):
         
         self.approvalMenu = self.menuBar().addMenu("市残联申核(&A)")
         self.approvalMenu.addAction(self.approvalAct)
+
+        self.hospitalMenu = self.menuBar().addMenu("医院确认结算(&P)")
+        self.hospitalMenu.addAction(self.hospitalAct)
+        self.hospitalMenu.addAction(self.calcAct)
 
         self.helpMenu = self.menuBar().addMenu("关于(&H)")
         self.helpMenu.addAction(self.aboutAct)
