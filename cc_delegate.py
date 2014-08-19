@@ -255,6 +255,9 @@ class HospitalOutDateDelegate(QItemDelegate):
             indate  = index.sibling(index.row(),18).data().toPyDate()
             outdate = editor.date().toPyDate()
             dayshosp = (outdate - indate).days
+            savelevel = index.sibling(index.row(),38).data()
+            foodlevel = index.sibling(index.row(),39).data()
+            # print(savelevel, foodlevel, '---')
 
             if period == u"急性":
                 totallimit = 60
@@ -266,6 +269,16 @@ class HospitalOutDateDelegate(QItemDelegate):
             else:
                 dayssave = totallimit
                 daysfood = totallimit
+
+            moneyhospital = savelevel * dayssave
+            moneyfood     = daysfood * foodlevel
+            if moneyhospital > 1000:
+                moneyfrom = 1000
+            else:
+                moneyfrom = moneyhospital
             model.setData(index.sibling(index.row(), 23), dayshosp)
             model.setData(index.sibling(index.row(), 24), dayssave)
             model.setData(index.sibling(index.row(), 25), daysfood)
+            model.setData(index.sibling(index.row(), 32), moneyhospital)
+            model.setData(index.sibling(index.row(), 33), moneyfood)
+            model.setData(index.sibling(index.row(), 34), moneyfrom)

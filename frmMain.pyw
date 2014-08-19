@@ -9,6 +9,7 @@ from frmApply import ApplyDlg
 from frmPwd import frmPwd
 from frmHospital import HospitalDlg
 from frmCalc import CalcDlg
+from frmFinish import FinishDlg
 
 class MainWindow(QMainWindow):
     def __init__(self, db="", curuser = {}):
@@ -110,6 +111,22 @@ class MainWindow(QMainWindow):
                 return
 
         widget = ApplyDlg(db=self.db, curuser=self.curuser)
+        tabindx = self.tabWidget.addTab(widget,curTabText)
+        self.tabWidget.setCurrentWidget(widget)
+
+    def FinishManage(self):
+        if self.curuser != {}:
+            if self.curuser["unitgroup"] != "市残联" :
+                QMessageBox.warning(self, "没有授权", "当前用户没有权限进行该操作！")
+                return
+
+        curTabText = "市残联核结"
+        for tabindx in list(range(0, self.tabWidget.count())):
+            if self.tabWidget.tabText(tabindx) == curTabText:
+                self.tabWidget.setCurrentIndex(tabindx)
+                return
+
+        widget = FinishDlg(db=self.db, curuser=self.curuser)
         tabindx = self.tabWidget.addTab(widget,curTabText)
         self.tabWidget.setCurrentWidget(widget)
       
@@ -226,6 +243,7 @@ class MainWindow(QMainWindow):
         self.mentalAct      = self.createAction("基础信息库(&M)", self.MentalManage,   "", "", "精神病人基础信息库")
         self.applyAct       = self.createAction("住院申请(&I)", self.ApplyManage,   "", "", "住院申请")
         self.approvalAct    = self.createAction("市残联申核(&A)", self.ApprovalManage,   "", "", "市残联申核")
+        self.finishAct    = self.createAction("市残联核结(&A)", self.FinishManage,   "", "", "市残联核结")
         self.hospitalAct    = self.createAction("确认出入院(&A)", self.HospitalManage,   "", "", "确认出入院")
         self.calcAct        = self.createAction("出院费用结算(&A)", self.CalcManage,   "", "", "出院费用结算")
         self.exitAct        = self.createAction("退出(&X)", self.close,   "Ctrl+Q", "", "退出系统")
@@ -245,6 +263,7 @@ class MainWindow(QMainWindow):
         
         self.approvalMenu = self.menuBar().addMenu("市残联申核(&A)")
         self.approvalMenu.addAction(self.approvalAct)
+        self.approvalMenu.addAction(self.finishAct)
 
         self.hospitalMenu = self.menuBar().addMenu("医院确认结算(&P)")
         self.hospitalMenu.addAction(self.hospitalAct)
