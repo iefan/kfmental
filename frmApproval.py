@@ -23,6 +23,17 @@ class ApprovalDlg(QDialog):
             self.ApprovalModel.setHeaderData(indx+1, Qt.Horizontal, iheader)
     
         self.ApprovalView.setModel(self.ApprovalModel)
+
+        self.ApprovalView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.connect(self.ApprovalView, SIGNAL("customContextMenuRequested(const QPoint &)"), self.show_contextmenu)
+
+        self.popMenu = QMenu(self)
+        entry1 = self.popMenu.addAction("导出医疗救助通知单")
+        entry1.triggered.connect(self.exportNotice)
+        # self.connect(entry1, SIGNAL('triggered()'), self.exportNotice())
+        # self.connect(self.ApprovalView.horizontalHeader(), SIGNAL("customContextMenuRequested(QPoint)"), SLOT(self.show_contextmenu))
+        # self.ApprovalView.customContextMenuRequested.connect(self.show_contextmenu)
+
         self.ApprovalView.setColumnHidden(0, True) # hide sn
 
         hideColList = list(range(18,43))
@@ -48,11 +59,6 @@ class ApprovalDlg(QDialog):
                     "alternate-background-color: rgb(141, 163, 215);}"
                     "QTableView::item:hover {background-color: rgba(100,200,220,100);} ") 
 
-        # self.ApprovalView.setStyleSheet()
-        # self.ApprovalView.setSelectionBehavior(QAbstractItemView.SelectItems)
-        # self.ApprovalView.setSelectionMode(QAbstractItemView.SingleSelection)
-        # self.ApprovalView.horizontalHeader().setStyleSheet("color: red");
-        # self.ApprovalView.verticalHeader().hide()
         # self.ApprovalView.verticalHeader().setFixedWidth(30)
         self.ApprovalView.verticalHeader().setStyleSheet("color: red;font-size:20px; ");
         self.ApprovalView.setStyleSheet("font-size:14px; ");
@@ -156,16 +162,50 @@ class ApprovalDlg(QDialog):
         # self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.ApprovalView.doubleClicked.connect(self.dbclick)
 
-        # self.ApprovalModel.emit(SIGNAL('dataChanged(QModelIndex,QModelIndex)'), self.ApprovalModel.index(1, 5), self.ApprovalModel.index(1, 5))
+    def exportNotice(self):
+        indx = self.ApprovalView.currentIndex()
+        # print(indx)
+        approvalsn  = indx.sibling(indx.row(),1).data()
+        
+        # self.ApprovalModel.setQuery()
+        query = QSqlQuery(self.db)
+        strsql = "select M.county, M.name, M.economic, M.sex, A.period, M.ppid, A.foodallow, A.notifystart, A.notifyend  \
+            from mentalmodel as M, approvalmodel as A where M.id=A.mental_id and A.approvalsn='%s'" % approvalsn
+        ret= query.exec_(strsql)
+        while query.next():
+            county      = query.value(0)
+            name        = query.value(1)
+            economic    = query.value(2)
+            sex         = query.value(3)
+            period      = query.value(4)
+            ppid        = query.value(5)
+            foodallow   = query.value(6)
+            notifystart = query.value(7).toString('yyyy年MM月dd日')
+            notifyend   = query.value(8).toString('yyyy年MM月dd日')
 
-        # self.ApprovalView.dataChanged.connect(self.approvalItemChange)
 
-    # def dataChanged(self, topleft, bottomright):
-    #     print(topleft.data())
-        # QAbstractItemView.dataChanged(topleft, bottomright)
-        # print(topleft, '2')
-        # print(topleft.column() )
-        # print(topleft.data(), bottomright.sibling(indx.row(),15))
+        # from xlrd import open_workbook
+        # from xlutils.copy import copy
+        # mentalmodel = self.ApprovalModel.relationModel(2)
+        # mentalmodel.setFilter('id=%s' % name)
+
+        # record  = self.ApprovalModel.database().record(self.ApprovalModel.tableName())
+        # field   = record.field(2);
+        # print(record
+        # field.value())
+        # print('---', self.ApprovalModel.relationModel(2), self.ApprovalModel.relationModel(2).fieldIndex("id"))
+
+        print(approvalsn, county, name,economic, sex, period, ppid, foodallow, notifystart, notifyend)
+
+    def show_contextmenu(self,point):
+        # print(point, self.mapToParent(point), self.mapToParent(point), self.mapToGlobal(point))
+        # print(point, self.mapFromParent(point), self.mapFromParent(point), self.mapFromGlobal(point))
+        # print(point, self.ApprovalView.mapToParent(point), self.ApprovalView.mapToParent(point), self.ApprovalView.mapToGlobal(point))
+        # print(point, self.ApprovalView.mapFromParent(point), self.ApprovalView.mapFromParent(point), self.ApprovalView.mapFromGlobal(point))
+        # indx = self.ApprovalView.indexAt(point)
+        # point.setX(point.x()+self.popMenu.width()-10);
+        # point.setY(point.y()+self.popMenu.height());
+        self.popMenu.exec_(self.ApprovalView.mapToGlobal(point))
 
     def closeEvent(self, event):
         self.db.close()
@@ -234,6 +274,18 @@ class ApprovalDlg(QDialog):
     def okApproval(self):
         index = self.ApprovalView.currentIndex()
         row = index.row()
+
+        issaveok = self.ApprovalModel.data(self.ApprovalModel.index(row, 19))
+        # print(issaveok)
+        if issaveok == "已确认":
+            return
+
+        savetimes = self.ApprovalModel.data(self.ApprovalModel.index(row, 11))
+        if type(savetimes)== QPyNullVariant:
+            savetimes = 1
+        else:
+            savetimes += 1
+
         hospital = self.ApprovalModel.data(self.ApprovalModel.index(row, 8))
         period   = self.ApprovalModel.data(self.ApprovalModel.index(row, 9))
         food     = self.ApprovalModel.data(self.ApprovalModel.index(row, 10))
@@ -249,12 +301,12 @@ class ApprovalDlg(QDialog):
         else:
             approvalman = self.unitman
         self.ApprovalModel.setData(self.ApprovalModel.index(row, 1), datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")) 
-        self.ApprovalModel.setData(self.ApprovalModel.index(row, 11), 1) 
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 11), savetimes) 
         self.ApprovalModel.setData(self.ApprovalModel.index(row, 12), "") 
         self.ApprovalModel.setData(self.ApprovalModel.index(row, 15), '同意') 
         self.ApprovalModel.setData(self.ApprovalModel.index(row, 16), QDate.currentDate()) 
         self.ApprovalModel.setData(self.ApprovalModel.index(row, 17), approvalman) 
-        self.ApprovalModel.setData(self.ApprovalModel.index(row, 20), '未确认') 
+        self.ApprovalModel.setData(self.ApprovalModel.index(row, 19), '未确认') 
 
         if period == "急性":
             self.ApprovalModel.setData(self.ApprovalModel.index(row, 38), 64) #急性64/天，慢性57/天
