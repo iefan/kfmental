@@ -197,6 +197,50 @@ class ApprovalDlg(QDialog):
 
         print(approvalsn, county, name,economic, sex, period, ppid, foodallow, notifystart, notifyend)
 
+        from xlwt import Workbook,easyxf
+        book = Workbook(encoding='ascii')
+            # 'pattern: pattern solid,  fore_colour white;'
+        style = easyxf(
+            'font: height 280, name 黑体;'
+            'align: vertical center, horizontal center;'
+            )
+        style2 = easyxf('font: height 260, name 仿宋_GB2312, bold True; align: vertical center, horizontal left;')
+
+        sheet1 = book.add_sheet('住院通知单',cell_overwrite_ok=True)
+        sheet1.write(0,7,'存根联', easyxf('font: height 200, name 黑体;align: vertical center, horizontal right;'))
+        sheet1.col(7).width = 25*256
+        sheet1.write_merge(1,1,1,7, '汕头市残疾人医疗康复救助基金贫困精神病人医疗救助通知单',style)
+        sheet1.col(1).width = 26*256
+        sheet1.row(1).height_mismatch = 1
+        sheet1.row(1).height = 5*256
+        sheet1.col(0).width = 10
+        sheet1.write(2,1,'医院（中心）：', easyxf('font: height 260, name 仿宋_GB2312; align: vertical center, horizontal right'))
+        sheet1.write(3,1,'　　经审核，下列人员符合汕头市残疾人医疗康复救助基金精神病患者住院医疗救助条件，请按照有关规定确认接收治疗：')
+        sheet1.row(3).height_mismatch = 1
+        sheet1.row(3).height = 4*220
+        sheet1.write(4,1,'审批编号：', style2)
+        sheet1.row(4).height_mismatch = 1
+        sheet1.row(4).height = 3*200
+        sheet1.write(5,1,'区县：', style2)
+        sheet1.write(6,1,'姓名：', style2)
+        sheet1.write(7,1,'性别：', style2)
+        sheet1.write(8,1,'通知单有效期：', style2)
+        sheet1.write(9,1,'备    注：', style2)
+        sheet1.write(10,1,'签发：', style2)
+        sheet1.write(6,4,'经济状况：', style2)
+        sheet1.write(7,4,'救助疗程：', style2)
+        sheet1.write(8,4,'伙食补助：', style2)
+        sheet1.write(10,3,'审批时间', style2)
+        sheet1.write(10,7,'残联基金专用印章', style2)
+        for indx in list(range(5,11)):
+            sheet1.row(indx).height_mismatch =1 
+            sheet1.row(indx).height=2*256
+
+        book.save('d:/simple.xls')
+        
+
+
+
     def show_contextmenu(self,point):
         # print(point, self.mapToParent(point), self.mapToParent(point), self.mapToGlobal(point))
         # print(point, self.mapFromParent(point), self.mapFromParent(point), self.mapFromGlobal(point))
