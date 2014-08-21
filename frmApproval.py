@@ -169,7 +169,8 @@ class ApprovalDlg(QDialog):
         
         # self.ApprovalModel.setQuery()
         query = QSqlQuery(self.db)
-        strsql = "select M.county, M.name, M.economic, M.sex, A.period, M.ppid, A.foodallow, A.notifystart, A.notifyend  \
+        strsql = "select M.county, M.name, M.economic, M.sex, A.period, M.ppid, A.foodallow, A.notifystart, \
+            A.notifyend, A.hospital, A.approvaldate \
             from mentalmodel as M, approvalmodel as A where M.id=A.mental_id and A.approvalsn='%s'" % approvalsn
         ret= query.exec_(strsql)
         while query.next():
@@ -180,23 +181,12 @@ class ApprovalDlg(QDialog):
             period      = query.value(4)
             ppid        = query.value(5)
             foodallow   = query.value(6)
-            notifystart = query.value(7).toString('yyyy年MM月dd日')
-            notifyend   = query.value(8).toString('yyyy年MM月dd日')
+            notifystart = query.value(7).toString('yyyy.MM.dd')
+            notifyend   = query.value(8).toString('yyyy.MM.dd')
+            hospital    = query.value(9)
+            approvaldate = query.value(10).toString('yyyy.MM.dd')
 
-
-        # from xlrd import open_workbook
-        # from xlutils.copy import copy
-        # mentalmodel = self.ApprovalModel.relationModel(2)
-        # mentalmodel.setFilter('id=%s' % name)
-
-        # record  = self.ApprovalModel.database().record(self.ApprovalModel.tableName())
-        # field   = record.field(2);
-        # print(record
-        # field.value())
-        # print('---', self.ApprovalModel.relationModel(2), self.ApprovalModel.relationModel(2).fieldIndex("id"))
-
-        print(approvalsn, county, name,economic, sex, period, ppid, foodallow, notifystart, notifyend)
-
+        # print(approvalsn, county, name,economic, sex, period, ppid, foodallow, notifystart, notifyend)
         from xlwt import Workbook,easyxf
         book = Workbook(encoding='ascii')
             # 'pattern: pattern solid,  fore_colour white;'
@@ -205,41 +195,59 @@ class ApprovalDlg(QDialog):
             'align: vertical center, horizontal center;'
             )
         style2 = easyxf('font: height 260, name 仿宋_GB2312, bold True; align: vertical center, horizontal left;')
+        style3 = easyxf('font: height 260, name 仿宋_GB2312, bold True; align: vertical center, horizontal left, wrap True;')
 
         sheet1 = book.add_sheet('住院通知单',cell_overwrite_ok=True)
-        sheet1.write(0,7,'存根联', easyxf('font: height 200, name 黑体;align: vertical center, horizontal right;'))
-        sheet1.col(7).width = 25*256
-        sheet1.write_merge(1,1,1,7, '汕头市残疾人医疗康复救助基金贫困精神病人医疗救助通知单',style)
-        sheet1.col(1).width = 26*256
-        sheet1.row(1).height_mismatch = 1
-        sheet1.row(1).height = 5*256
-        sheet1.col(0).width = 10
-        sheet1.write(2,1,'医院（中心）：', easyxf('font: height 260, name 仿宋_GB2312; align: vertical center, horizontal right'))
-        sheet1.write(3,1,'　　经审核，下列人员符合汕头市残疾人医疗康复救助基金精神病患者住院医疗救助条件，请按照有关规定确认接收治疗：')
-        sheet1.row(3).height_mismatch = 1
-        sheet1.row(3).height = 4*220
-        sheet1.write(4,1,'审批编号：', style2)
-        sheet1.row(4).height_mismatch = 1
-        sheet1.row(4).height = 3*200
-        sheet1.write(5,1,'区县：', style2)
-        sheet1.write(6,1,'姓名：', style2)
-        sheet1.write(7,1,'性别：', style2)
-        sheet1.write(8,1,'通知单有效期：', style2)
-        sheet1.write(9,1,'备    注：', style2)
-        sheet1.write(10,1,'签发：', style2)
-        sheet1.write(6,4,'经济状况：', style2)
-        sheet1.write(7,4,'救助疗程：', style2)
-        sheet1.write(8,4,'伙食补助：', style2)
-        sheet1.write(10,3,'审批时间', style2)
-        sheet1.write(10,7,'残联基金专用印章', style2)
-        for indx in list(range(5,11)):
-            sheet1.row(indx).height_mismatch =1 
-            sheet1.row(indx).height=2*256
 
-        book.save('d:/simple.xls')
-        
+        sheet1.col(0).width = 5*256
+        sheet1.col(1).width = 32*256
+        sheet1.col(7).width = 15*256
+        for irow in [0, 12]:
+            if irow == 0:
+                flagtxt = '存根联'
+            else:
+                flagtxt = "核报联"
+            sheet1.write(0+irow,7,flagtxt, easyxf('font: height 200, name 黑体;align: vertical center, horizontal right;'))
+            sheet1.write_merge(1+irow,1+irow,0,7, '汕头市残疾人医疗康复救助基金贫困精神病人医疗救助通知单',style)
+            sheet1.row(1+irow).height_mismatch = 1
+            sheet1.row(1+irow).height = 5*256
+            sheet1.write_merge(2+irow,2+irow,0,1,'%s医院（中心）：'% hospital, easyxf('font: height 260, name 仿宋_GB2312; align: vertical center, horizontal left'))
+            # sheet1.col(1).width = 30*256
+            sheet1.write_merge(3+irow,3+irow,0,7,'　　经审核，下列人员符合汕头市残疾人医疗康复救助基金精神病患者住院医疗救助条件，请按照有关规定确认接收治疗：', style3)
+            sheet1.row(3+irow).height_mismatch = 1
+            sheet1.row(3+irow).height = 5*220
+            sheet1.write_merge(4+irow,4+irow,1,4,'审批编号：%s' % approvalsn, style2)
+            sheet1.row(4+irow).height_mismatch = 1
+            sheet1.row(4+irow).height = 3*200
+            sheet1.write(5+irow,1,'区县：%s' % county, style2)
+            sheet1.write(6+irow,1,'姓名：%s' % name, style2)
+            sheet1.write(7+irow,1,'性别：%s' % sex, style2)
+            sheet1.write_merge(8+irow,8+irow,1,4,'通知单有效期：%s至%s' %(notifystart, notifyend), style2)
+            sheet1.write(9+irow,1,'备    注：', style2)
+            sheet1.write(10+irow,1,'签发：', style2)
+            sheet1.write(6+irow,5,'经济状况：%s' % economic, style2)
+            sheet1.write(7+irow,5,'救助疗程：%s' % period, style2)
+            sheet1.write(8+irow,5,'伙食补助：%s' % foodallow, style2)
+            sheet1.write_merge(10+irow,10+irow,2,5,'审批时间: %s' % approvaldate, style2)
+            sheet1.write_merge(10+irow,10+irow,6,7,'残联基金专用印章', easyxf('font: height 260, name 仿宋_GB2312, bold True; align: vertical center, horizontal center;'))
+            for indx in list(range(5,11)):
+                sheet1.row(indx+irow).height_mismatch =1 
+                sheet1.row(indx+irow).height=2*256
+            sheet1.row(10+irow).height=4*256
+        sheet1.write_merge(11,11,0,7,'………………………………………………………………………………………………………………', easyxf('font: height 240, name 宋体; align: vertical center, horizontal center;'))
+        sheet1.row(11).height_mismatch = 1
+        sheet1.row(11).height = 6*200
+        sheet1.header_str = "".encode()
+        sheet1.footer_str = "".encode()
 
-
+        # book.save('d:/simple.xls')
+        # print(QDir.home().dirName() , QDir.homePath ())
+        filename = QDir.homePath () + "\%s.xls" % approvalsn
+        try:
+            book.save(filename)
+        except  Exception as e:
+            QMessageBox.warning(self, "写入错误", "错误号："+str(e.errno)+"\n错误描述："+e.strerror+"\n请关闭已经打开的%s文档!" % filename)
+        QMessageBox.about (self, "导入成功", "请查看文档：%s" % filename)
 
     def show_contextmenu(self,point):
         # print(point, self.mapToParent(point), self.mapToParent(point), self.mapToGlobal(point))
