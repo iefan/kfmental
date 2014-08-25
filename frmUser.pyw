@@ -52,19 +52,6 @@ class UserDlg(QDialog):
         self.userView.verticalHeader().setFixedWidth(30)
         self.userView.verticalHeader().setStyleSheet("color: red;font-size:20px; ");
         self.userView.setStyleSheet("font-size:14px; ");
-        # print(4)
-        # self.userView.show()
-
-        # topFiller = QTableWidget()
-        # topFiller.clear()
-        # topFiller.setSortingEnabled(False)
-        # topFiller.setRowCount(10)
-        # topFiller.setColumnCount(len(headers))
-        # topFiller.setHorizontalHeaderLabels(headers)
-        # topFiller.setItem(1, 1, QTableWidgetItem("1"))
-        # topFiller.resizeColumnsToContents()
-
-        # topFiller = QWidget()
         self.userView.setSizePolicy(QSizePolicy.Expanding,
                 QSizePolicy.Expanding)
 
@@ -115,7 +102,6 @@ class UserDlg(QDialog):
         a = self.userModel.submitAll()
         b = self.userModel.database().commit()
         QMessageBox.warning(self, '成功', '重置密码完成，当前密码:123456！')
-
         
     def removeUser(self):
         index = self.userView.currentIndex()

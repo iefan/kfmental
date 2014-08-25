@@ -152,7 +152,6 @@ class MentalDlg(QDialog):
         # self.yearCheckbox.stateChanged.connect(self.yearCheck)
         # self.MentalView.clicked.connect(self.tableClick)
         # self.connect(savebtn, SIGNAL('clicked()'), self.saveMental)
-        self.dispTotalnums()
         # self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.MentalView.doubleClicked.connect(self.dbclick)
 
@@ -161,39 +160,26 @@ class MentalDlg(QDialog):
         self.db.close()
 
     def dbclick(self, indx):
-        #当已经申核完结时，锁定当前item，禁止编辑，主要通过全局的 setEditTriggers 来设置。
-        if self.curuser != {}:
-            if self.curuser["unitgroup"] == "市残联" or self.curuser["unitgroup"] == "区残联":
-                self.MentalView.setEditTriggers(QAbstractItemView.DoubleClicked)
+        # print(indx, '~~~~~~~~~~~~~~~~~~', type(indx.sibling(indx.row(),0).data()) == QPyNullVariant)
+        if type(indx.sibling(indx.row(),0).data()) != QPyNullVariant:
+            mentalid = indx.sibling(indx.row(),0).data()
+            query = QSqlQuery(self.db)
+            strsql = "select count(*) from mentalmodel as M, approvalmodel as A where A.mental_id=M.id and M.id = %d" % mentalid
+            ret= query.exec_(strsql)
+            query.next()
+            isInApply = query.value(0)
+
+            #当已经申核完结时，锁定当前item，禁止编辑，主要通过全局的 setEditTriggers 来设置。
+            if indx.column() in [1,3,4]:
+                if isInApply != 0:
+                    self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+                else:
+                    self.MentalView.setEditTriggers(QAbstractItemView.DoubleClicked)
             else:
-                self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+                self.MentalView.setEditTriggers(QAbstractItemView.DoubleClicked)
+        else:
+            self.MentalView.setEditTriggers(QAbstractItemView.DoubleClicked)
 
-                # if indx.sibling(indx.row(),4).data() == "是":
-                #     self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-                # else:
-                #     self.MentalView.setEditTriggers(QAbstractItemView.DoubleClicked)
-
-                # if indx.column() == 4:
-                #     self.MentalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-
-
-    def dispTotalnums(self, strwhere="1=1"):
-        query = QSqlQuery(self.db)
-        strsql = "SELECT count(*) FROM mentalmodel where " + strwhere
-        ret= query.exec_(strsql)
-        query.next()
-        # print(ret, "~~~~~~~", strsql)
-        # total_personnums = 0
-        # total_toolnums = 0
-        # while query.next():
-        #     if type(query.value(0))== QPyNullVariant:
-        #         break
-        #     total_personnums += query.value(0)
-        #     total_toolnums   += query.value(1)
-            # print(query.value(0), query.value(1))
-
-        # print(total_personnums, total_toolnums, "==")
-        self.infoLabel.setText("合计：当前查询人数 <font color='red'>%d</font> " % int(query.value(0)))
 
     def findMental(self):
         name        = self.nameEdit.text()
@@ -210,9 +196,8 @@ class MentalDlg(QDialog):
         self.MentalModel.setFilter(strwhere)
         self.MentalModel.select()
 
-        self.dispTotalnums(strwhere)
+        self.infoLabel.setText("合计：当前查询人数 <font color='red'>%d</font> " % int(self.MentalModel.rowCount()))
 
-        # self.MentalModel.setFilter("")
 
     def applyMental(self):
         index = self.MentalView.currentIndex()
@@ -238,24 +223,26 @@ class MentalDlg(QDialog):
         tabindx = parentTabWidget.addTab(widget,curTabText)
         parentTabWidget.setCurrentWidget(widget)
 
-        # query = QSqlQuery(self.db)
-        # strsql = "insert into approvalmodel (mental_id) VALUES (%d) " % mentalid
-        # ret= query.exec_(strsql)
-
-        # print(mentalid)
-        # print(mentalid, ret, '---', strsql)
-
     def removeMental(self):
         index = self.MentalView.currentIndex()
         row = index.row()
         if row != -1:
-            ppname = self.MentalModel.data(self.MentalModel.index(row, 1))
-            if QMessageBox.question(self, "删除确认", "是否要删除当前选中记录？\n\n姓名：%s\n\n" % ppname, "确定", "取消") == 0:
-                self.MentalModel.removeRows(row, 1)
-                self.MentalModel.submitAll()
-                self.MentalModel.database().commit()
+            mentalid = self.MentalModel.data(self.MentalModel.index(row, 0))
+            query = QSqlQuery(self.db)
+            strsql = "select count(*) from mentalmodel as M, approvalmodel as A where A.mental_id=M.id and M.id = %d" % mentalid
+            ret= query.exec_(strsql)
+            query.next()
+            isInApply = query.value(0)
+            if isInApply == 0: # 当前人员没有任何申请记录
+                ppname = self.MentalModel.data(self.MentalModel.index(row, 1))
+                if QMessageBox.question(self, "删除确认", "是否要删除当前选中记录？\n\n姓名：%s\n\n" % ppname, "确定", "取消") == 0:
+                    self.MentalModel.removeRows(row, 1)
+                    self.MentalModel.submitAll()
+                    self.MentalModel.database().commit()
 
-                self.infoLabel.setText("")
+                    self.infoLabel.setText("")
+            else:
+                QMessageBox.warning(self, "警告", "当前人员已经有住院记录，无法删除！\n\n如需帮助，请联系市残联康复科！")
 
         # print("nameid")
         
@@ -286,7 +273,7 @@ class MentalDlg(QDialog):
             self.MentalModel.database().rollback()
             # print("save fail!  ->rollback")
 
-        self.MentalModel.setFilter("1=1")
+        # self.MentalModel.setFilter("1=1")
         self.infoLabel.setText("")
         # model->database().transaction();
         # tmpitem = QStandardItem("张三")

@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         self.createActions()
         self.createMenus()
 
-        message = "欢迎使用汕头市残联康复业务管理系统！"
+        message = "欢迎使用汕头市精防基金结算业务系统！"
         self.statusBar().showMessage(message)
 
         if self.curuser == {}:
@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
         self.statusBar().addPermanentWidget(self.userlabel)
 
         self.setWindowIcon(QIcon("images/login.png"))
-        self.setWindowTitle("康复业务系统")
+        self.setWindowTitle("精防基金结算业务系统")
         self.setMinimumSize(480,320)
         self.showMaximized()
         # self.resize(720,600)
@@ -100,7 +100,7 @@ class MainWindow(QMainWindow):
 
     def ApplyManage(self):
         if self.curuser != {}:
-            if self.curuser["unitgroup"] != "市残联" or self.curuser["unitgroup"] != "区残联" :
+            if self.curuser["unitgroup"] != "市残联" and self.curuser["unitgroup"] != "区残联":
                 QMessageBox.warning(self, "没有授权", "当前用户没有权限进行该操作！")
                 return
 
@@ -148,7 +148,7 @@ class MainWindow(QMainWindow):
 
     def CalcManage(self):
         if self.curuser != {}:
-            if self.curuser["unitgroup"] != "市残联" or self.curuser["unitgroup"] != "医院" :
+            if self.curuser["unitgroup"] != "市残联" and self.curuser["unitgroup"] != "医院" :
                 QMessageBox.warning(self, "没有授权", "当前用户没有权限进行该操作！")
                 return
 
@@ -165,7 +165,7 @@ class MainWindow(QMainWindow):
     
     def HospitalManage(self):
         if self.curuser != {}:
-            if self.curuser["unitgroup"] != "市残联" or self.curuser["unitgroup"] != "医院" :
+            if self.curuser["unitgroup"] != "市残联" and self.curuser["unitgroup"] != "医院" :
                 QMessageBox.warning(self, "没有授权", "当前用户没有权限进行该操作！")
                 return
 

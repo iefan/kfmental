@@ -18,7 +18,7 @@ class ApprovalDlg(QDialog):
         self.ApprovalModel.setTable("approvalmodel")
         self.ApprovalModel.setRelation(2, QSqlRelation("mentalmodel", "id", "name"));
         self.ApprovalModel.setEditStrategy(QSqlTableModel.OnManualSubmit)
-        self.ApprovalModel.select()
+        # self.ApprovalModel.select()
         for indx, iheader in enumerate(LST_APPROVALHEADER):
             self.ApprovalModel.setHeaderData(indx+1, Qt.Horizontal, iheader)
     
@@ -29,7 +29,9 @@ class ApprovalDlg(QDialog):
 
         self.popMenu = QMenu(self)
         entry1 = self.popMenu.addAction("导出医疗救助通知单")
+        entry2 = self.popMenu.addAction("导出伙食补助通知单")
         entry1.triggered.connect(self.exportNotice)
+        entry2.triggered.connect(self.exportNotice2)
         # self.connect(entry1, SIGNAL('triggered()'), self.exportNotice())
         # self.connect(self.ApprovalView.horizontalHeader(), SIGNAL("customContextMenuRequested(QPoint)"), SLOT(self.show_contextmenu))
         # self.ApprovalView.customContextMenuRequested.connect(self.show_contextmenu)
@@ -161,6 +163,7 @@ class ApprovalDlg(QDialog):
         # self.dispTotalnums()
         # self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.ApprovalView.doubleClicked.connect(self.dbclick)
+        self.findApproval()
 
     def exportNotice(self):
         indx = self.ApprovalView.currentIndex()
@@ -222,32 +225,122 @@ class ApprovalDlg(QDialog):
             sheet1.write(5+irow,1,'区县：%s' % county, style2)
             sheet1.write(6+irow,1,'姓名：%s' % name, style2)
             sheet1.write(7+irow,1,'性别：%s' % sex, style2)
-            sheet1.write_merge(8+irow,8+irow,1,4,'通知单有效期：%s至%s' %(notifystart, notifyend), style2)
-            sheet1.write(9+irow,1,'备    注：', style2)
-            sheet1.write(10+irow,1,'签发：', style2)
+            sheet1.write_merge(8+irow,8+irow,1,3,'身份证号码：%s' % ppid, style2)
+            sheet1.write_merge(9+irow,9+irow,1,4,'通知单有效期：%s至%s' %(notifystart, notifyend), style2)
+            sheet1.write(10+irow,1,'备    注：', style2)
+            sheet1.write(11+irow,1,'签发：', style2)
             sheet1.write(6+irow,5,'经济状况：%s' % economic, style2)
             sheet1.write(7+irow,5,'救助疗程：%s' % period, style2)
             sheet1.write(8+irow,5,'伙食补助：%s' % foodallow, style2)
-            sheet1.write_merge(10+irow,10+irow,2,5,'审批时间: %s' % approvaldate, style2)
-            sheet1.write_merge(10+irow,10+irow,6,7,'残联基金专用印章', easyxf('font: height 260, name 仿宋_GB2312, bold True; align: vertical center, horizontal center;'))
-            for indx in list(range(5,11)):
+            sheet1.write_merge(11+irow,11+irow,2,5,'审批时间: %s' % approvaldate, style2)
+            sheet1.write_merge(11+irow,11+irow,6,7,'残联基金专用印章', easyxf('font: height 260, name 仿宋_GB2312, bold True; align: vertical center, horizontal center;'))
+            for indx in list(range(5,12)):
                 sheet1.row(indx+irow).height_mismatch =1 
                 sheet1.row(indx+irow).height=2*256
-            sheet1.row(10+irow).height=4*256
-        sheet1.write_merge(11,11,0,7,'………………………………………………………………………………………………………………', easyxf('font: height 240, name 宋体; align: vertical center, horizontal center;'))
-        sheet1.row(11).height_mismatch = 1
-        sheet1.row(11).height = 6*200
+            sheet1.row(11+irow).height=3*256
+        sheet1.write_merge(12,12,0,7,'………………………………………………………………………………………………………………', easyxf('font: height 240, name 宋体; align: vertical center, horizontal center;'))
+        sheet1.row(12).height_mismatch = 1
+        sheet1.row(12).height = 5*200
         sheet1.header_str = "".encode()
         sheet1.footer_str = "".encode()
 
         # book.save('d:/simple.xls')
         # print(QDir.home().dirName() , QDir.homePath ())
-        filename = QDir.homePath () + "\%s.xls" % approvalsn
+        filename = QDir.homePath () + "\住院通知单%s.xls" % approvalsn
         try:
             book.save(filename)
         except  Exception as e:
             QMessageBox.warning(self, "写入错误", "错误号："+str(e.errno)+"\n错误描述："+e.strerror+"\n请关闭已经打开的%s文档!" % filename)
-        QMessageBox.about (self, "导入成功", "请查看文档：%s" % filename)
+        QMessageBox.about (self, "导出成功", "请查看文档：%s" % filename)
+
+
+    def exportNotice2(self):
+        indx = self.ApprovalView.currentIndex()
+        # print(indx)
+        approvalsn  = indx.sibling(indx.row(),1).data()
+        
+        # self.ApprovalModel.setQuery()
+        query = QSqlQuery(self.db)
+        strsql = "select M.county, M.name, M.economic, M.sex, A.period, M.ppid, A.foodallow, A.notifystart, \
+            A.notifyend, A.hospital, A.approvaldate \
+            from mentalmodel as M, approvalmodel as A where M.id=A.mental_id and A.approvalsn='%s'" % approvalsn
+        ret= query.exec_(strsql)
+        while query.next():
+            county      = query.value(0)
+            name        = query.value(1)
+            economic    = query.value(2)
+            sex         = query.value(3)
+            period      = query.value(4)
+            ppid        = query.value(5)
+            foodallow   = query.value(6)
+            notifystart = query.value(7).toString('yyyy.MM.dd')
+            notifyend   = query.value(8).toString('yyyy.MM.dd')
+            hospital    = query.value(9)
+            approvaldate = query.value(10).toString('yyyy.MM.dd')
+
+        # print(approvalsn, county, name,economic, sex, period, ppid, foodallow, notifystart, notifyend)
+        from xlwt import Workbook,easyxf
+        book = Workbook(encoding='ascii')
+            # 'pattern: pattern solid,  fore_colour white;'
+        style = easyxf(
+            'font: height 280, name 黑体;'
+            'align: vertical center, horizontal center;'
+            )
+        style2 = easyxf('font: height 260, name 仿宋_GB2312, bold True; align: vertical center, horizontal left;')
+        style3 = easyxf('font: height 260, name 仿宋_GB2312, bold True; align: vertical center, horizontal left, wrap True;')
+
+        sheet1 = book.add_sheet('伙食补助通知单',cell_overwrite_ok=True)
+
+        sheet1.col(0).width = 5*256
+        sheet1.col(1).width = 32*256
+        sheet1.col(7).width = 16*256
+        for irow in [0, 13]:
+            if irow == 0:
+                flagtxt = '存根联'
+            else:
+                flagtxt = "核报联"
+            sheet1.write(0+irow,7,flagtxt, easyxf('font: height 200, name 黑体;align: vertical center, horizontal right;'))
+            sheet1.write_merge(1+irow,1+irow,0,7, '汕头市残疾人医疗康复救助基金贫困精神病人住院伙食补助单',style)
+            sheet1.row(1+irow).height_mismatch = 1
+            sheet1.row(1+irow).height = 5*256
+            sheet1.write_merge(2+irow,2+irow,0,1,'%s医院（中心）：'% hospital, easyxf('font: height 260, name 仿宋_GB2312; align: vertical center, horizontal left'))
+            # sheet1.col(1).width = 30*256
+            sheet1.write_merge(3+irow,3+irow,0,7,'　　经审核，下列人员在住院医疗救助期间，按《汕头市残疾人医疗康复救助基金精神病防治康复救助项目实施办法》规定享受住院伙食费补助：', style3)
+            sheet1.row(3+irow).height_mismatch = 1
+            sheet1.row(3+irow).height = 5*220
+            sheet1.write_merge(4+irow,4+irow,1,4,'审批编号：%s' % approvalsn, style2)
+            sheet1.row(4+irow).height_mismatch = 1
+            sheet1.row(4+irow).height = 3*200
+            sheet1.write(5+irow,1,'区县：%s' % county, style2)
+            sheet1.write(6+irow,1,'姓名：%s' % name, style2)
+            sheet1.write(7+irow,1,'性别：%s' % sex, style2)
+            sheet1.write_merge(8+irow,8+irow,1,3,'身份证号码：%s' % ppid, style2)
+            sheet1.write_merge(9+irow,9+irow,1,4,'通补助单有效期：同《住院医疗救助通知单》', style2)
+            sheet1.write(10+irow,1,'备    注：', style2)
+            sheet1.write(11+irow,1,'签发：', style2)
+            sheet1.write(6+irow,4,'经济状况：%s' % economic, style2)
+            sheet1.write(7+irow,4,'救助疗程：%s' % period, style2)
+            sheet1.write(8+irow,4,'补助起止：确认救助之日至疗程结束' , style2)
+            sheet1.write_merge(11+irow,11+irow,2,5,'审批时间: %s' % approvaldate, style2)
+            sheet1.write_merge(11+irow,11+irow,6,7,'残联基金专用印章', easyxf('font: height 260, name 仿宋_GB2312, bold True; align: vertical center, horizontal center;'))
+            for indx in list(range(5,12)):
+                sheet1.row(indx+irow).height_mismatch =1 
+                sheet1.row(indx+irow).height=2*256
+            sheet1.row(11+irow).height=3*256
+        sheet1.write_merge(12,12,0,7,'………………………………………………………………………………………………………………', easyxf('font: height 240, name 宋体; align: vertical center, horizontal center;'))
+        sheet1.row(12).height_mismatch = 1
+        sheet1.row(12).height = 4*200
+        sheet1.header_str = "".encode()
+        sheet1.footer_str = "".encode()
+
+        # book.save('d:/simple.xls')
+        # print(QDir.home().dirName() , QDir.homePath ())
+        filename = QDir.homePath () + "\伙食补助通知单%s.xls" % approvalsn
+        try:
+            book.save(filename)
+        except  Exception as e:
+            QMessageBox.warning(self, "写入错误", "错误号："+str(e.errno)+"\n错误描述："+e.strerror+"\n请关闭已经打开的%s文档!" % filename)
+        QMessageBox.about (self, "导出成功", "请查看文档：%s" % filename)
 
     def show_contextmenu(self,point):
         # print(point, self.mapToParent(point), self.mapToParent(point), self.mapToGlobal(point))
@@ -272,30 +365,6 @@ class ApprovalDlg(QDialog):
                 self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
             else:
                 self.ApprovalView.setEditTriggers(QAbstractItemView.DoubleClicked)
-
-        # self.connect(self.ApprovalModel, SIGNAL('dataChanged(QModelIndex,QModelIndex)'), SLOT(self.dataChanged(indx,indx)))
-        # if indx.sibling(indx.row(),15).data() == "同意":
-        #     self.ApprovalModel.setData(self.ApprovalModel.index(indx.row(), 1), 'aaaa2004')
-
-
-
-        #当已经申核完结时，锁定当前item，禁止编辑，主要通过全局的 setEditTriggers 来设置。
-        if self.curuser != {}:
-            if self.curuser["unitgroup"] == "市残联":
-                if indx.column() == 1:
-                    self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-                else:
-                    self.ApprovalView.setEditTriggers(QAbstractItemView.DoubleClicked)
-            else:
-                self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-
-                # if indx.sibling(indx.row(),4).data() == "是":
-                #     self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-                # else:
-                #     self.ApprovalView.setEditTriggers(QAbstractItemView.DoubleClicked)
-
-                # if indx.column() == 4:
-                #     self.ApprovalView.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
     def findApproval(self):
         name                = self.nameEdit.text()

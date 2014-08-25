@@ -60,14 +60,14 @@ class Login(QDialog):
         # print(passwd, tmppwd.hexdigest())
 
         query = QSqlQuery(self.db)
-        strsql = "SELECT unitsn, unitname, unitclass,unitman FROM User where unitsn='%s' and passwd='%s'" % (username, tmppwd.hexdigest())
+        strsql = "SELECT unitsn, unitname, unitgroup,unitman FROM User where unitsn='%s' and passwd='%s'" % (username, tmppwd.hexdigest())
         ret= query.exec_(strsql);
-        # print(ret, "~~~~~~~", strsql, query.next(), query.isValid())
+        # print(ret, "~~~~~~~", strsql, query.isValid())
         # print(ret, query.isValid(), query.next(),)
         if query.next():
             self.curuser['unitsn']      = query.value(0)
             self.curuser['unitname']    = query.value(1)
-            self.curuser['unitclass']   = query.value(2)
+            self.curuser['unitgroup']   = query.value(2)
             self.curuser['unitman']     = query.value(3)
             # print(1)
             # print("user", self.curuser)

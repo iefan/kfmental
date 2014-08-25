@@ -119,28 +119,12 @@ class FinishDlg(QDialog):
     def dbclick(self, indx):
         lstnotedit = list(range(1,43))
         lstnotedit.remove(41)
+        # print(indx.column())
         if indx.column() in lstnotedit:
             self.FinishView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         else:
             self.FinishView.setEditTriggers(QAbstractItemView.DoubleClicked)
-
-        #当已经申核完结时，锁定当前item，禁止编辑，主要通过全局的 setEditTriggers 来设置。
-        if self.curuser != {}:
-            if self.curuser["unitgroup"] == "市残联":
-                if indx.column() == 1:
-                    self.FinishView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-                else:
-                    self.FinishView.setEditTriggers(QAbstractItemView.DoubleClicked)
-            else:
-                self.FinishView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-
-                # if indx.sibling(indx.row(),4).data() == "是":
-                #     self.FinishView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-                # else:
-                #     self.FinishView.setEditTriggers(QAbstractItemView.DoubleClicked)
-
-                # if indx.column() == 4:
-                #     self.FinishView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+       
 
     def findFinish(self):
         name                = self.nameEdit.text()
