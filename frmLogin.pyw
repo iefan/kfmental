@@ -43,7 +43,7 @@ class Login(QDialog):
 
         self.setLayout(hlayout)
 
-        self.setWindowTitle("汕头市残联康复业务系统")
+        self.setWindowTitle("汕头市残联精防基金结算系统")
         self.setWindowIcon(QIcon("images/login.png"))
         self.setStyleSheet("font-size:16px;")
 

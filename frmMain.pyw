@@ -49,6 +49,11 @@ class MainWindow(QMainWindow):
         self.userlabel = QLabel(userInfoStr)
         self.statusBar().addPermanentWidget(self.userlabel)
 
+        dispSystemInfo = QLabel("汕头市残联精防基金结算\n\n       业务系统", self)
+        dispSystemInfo.setGeometry(300,200,820,200)
+        dispSystemInfo.setStyleSheet("font-size:60px; color:blue;font-weight:bold;")
+        # self.setStyleSheet("background-color:red;")
+
         self.setWindowIcon(QIcon("images/login.png"))
         self.setWindowTitle("精防基金结算业务系统")
         self.setMinimumSize(480,320)
