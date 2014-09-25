@@ -3,7 +3,7 @@ import sys
 
 DATETIME_FORMAT = "yyyy-MM"
 CUR_VERSION = "版本：2014.0725.1.0"
-CUR_CONTACT = "如有任何问题请联系康复科：88611869"
+CUR_CONTACT = "如有任何问题请联系康复科：88611869\n\n程序开发：赵小娜\n2014.9.2"
 
 def globaldb():
     db = QSqlDatabase.addDatabase("QMYSQL")
