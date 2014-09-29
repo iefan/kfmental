@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         self.createActions()
         self.createMenus()
 
-        message = "欢迎使用汕头市精防基金结算业务系统！"
+        message = "欢迎使用汕头市精神残疾人住院医疗救助结算业务系统！"
         self.statusBar().showMessage(message)
 
         if self.curuser == {}:
@@ -55,7 +55,7 @@ class MainWindow(QMainWindow):
         # self.setStyleSheet("background-color:red;")
 
         self.setWindowIcon(QIcon("images/login.png"))
-        self.setWindowTitle("精防基金结算业务系统")
+        self.setWindowTitle("汕头市精神残疾人住院医疗救助结算业务系统")
         self.setMinimumSize(480,320)
         self.showMaximized()
         # self.resize(720,600)
